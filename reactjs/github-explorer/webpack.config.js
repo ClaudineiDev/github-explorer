@@ -1,6 +1,6 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
 const isDevelopment = process.env.NODE_ENV != 'production';
 
 module.exports = {
@@ -16,24 +16,33 @@ module.exports = {
     },
     devServer: {
         contentBase: path.resolve(__dirname, 'public'),
+        hot: true,
     },
     plugins: [
+        isDevelopment && new ReactRefreshWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, 'public', 'index.html'),
         })
-    ],
+    ].filter(Boolean), // Rack para adicionar condicional que pode retornar um boolean
     module: {
         rules: [
             {
-            test: /\.jsx$/,
-            exclude: /node-modules/,
-            use: 'babel-loader',
+                test: /\.jsx$/,
+                exclude: /node-modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        plugins: [
+                            isDevelopment && require.resolve('react-refresh/babel')
+                        ].filter(Boolean)
+                    }
+                },
             },
             {
                 test: /\.scss$/,
                 exclude: /node-modules/,
                 use: ['style-loader','css-loader', 'sass-loader']
-                }
+            }
         ],
     }
 };
